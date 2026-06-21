@@ -46,7 +46,8 @@ if($DryRun){Write-Log '[COMPLETE] Dry-run completed.';exit 0}
 
 $verifyFailed=$false
 try{
-    $after=Get-ADObject -Identity $target.DistinguishedName -Properties TrustedForDelegation,msDS-AllowedToDelegateTo,msDS-AllowedToActOnBehalfOfOtherIdentity
+    if($ObjectType -eq 'Computer'){$after=Get-ADComputer -Identity $target.DistinguishedName -Properties TrustedForDelegation,msDS-AllowedToDelegateTo,msDS-AllowedToActOnBehalfOfOtherIdentity}
+    else{$after=Get-ADUser -Identity $target.DistinguishedName -Properties TrustedForDelegation,msDS-AllowedToDelegateTo,msDS-AllowedToActOnBehalfOfOtherIdentity}
     Write-Log ("[VERIFY] TrustedForDelegation={0}; ConstrainedTargets={1}; RBCDPresent={2}" -f $after.TrustedForDelegation,@($after.'msDS-AllowedToDelegateTo').Count,[bool]$after.'msDS-AllowedToActOnBehalfOfOtherIdentity')
     if($DisableUnconstrainedDelegation -and $after.TrustedForDelegation){$verifyFailed=$true}
     if($ClearConstrainedDelegation -and @($after.'msDS-AllowedToDelegateTo').Count -gt 0){$verifyFailed=$true}
